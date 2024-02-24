@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import StarterKit from "@tiptap/starter-kit";
 import Underline from "@tiptap/extension-underline";
 import TextAlign from "@tiptap/extension-text-align";
+import YoutubeExtension from "@tiptap/extension-youtube";
 
 import {
   AlignCenter,
@@ -19,6 +20,7 @@ import {
   ListOrdered,
   Minus,
   UnderlineIcon,
+  Youtube,
 } from "lucide-react";
 import {
   Select,
@@ -27,7 +29,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
   Tooltip,
@@ -37,13 +39,7 @@ import {
 } from "@/components/ui/tooltip";
 
 export const Tiptap = () => {
-  const extensions = [
-    StarterKit,
-    Underline,
-    TextAlign.configure({
-      types: ["heading", "paragraph"],
-    }),
-  ];
+  const extensions = [StarterKit, Underline, TextAlign, YoutubeExtension];
   const content = "<p>Hello World! 🌎️</p>";
 
   return (
@@ -67,6 +63,18 @@ export const ToolBar = () => {
     return null;
   }
 
+  const addYoutubeVideo = () => {
+    const url = prompt("Enter YouTube URL");
+
+    if (url) {
+      editor.commands.setYoutubeVideo({
+        src: url,
+        width: 640,
+        height: 480,
+      });
+    }
+  };
+
   const headingValue = useMemo(() => {
     if (editor.isActive("heading", { level: 1 })) {
       return "h1";
@@ -89,7 +97,7 @@ export const ToolBar = () => {
   }, [editor.state]);
 
   return (
-    <div className="flex items-center p-4 border-b gap-3">
+    <div className="flex items-center p-4 border-b gap-3 flex-wrap">
       <Select
         onValueChange={(e: "h1" | "h2" | "h3" | "h4" | "h5" | "p") => {
           console.log(e);
@@ -318,6 +326,20 @@ export const ToolBar = () => {
             </TooltipTrigger>
             <TooltipContent>
               <p>番号付きリスト</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </div>
+      <div>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger>
+              <Button variant="outline" size="icon" onClick={addYoutubeVideo}>
+                <Youtube className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Youtube動画</p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
