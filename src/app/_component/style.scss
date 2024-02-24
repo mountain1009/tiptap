@@ -1,6 +1,7 @@
 /* Basic editor styles */
 .tiptap {
   padding: 1rem;
+  min-height: 500px;
   > * + * {
     margin-top: 0.75em;
   }

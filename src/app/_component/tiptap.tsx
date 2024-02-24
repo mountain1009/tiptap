@@ -9,6 +9,7 @@ import StarterKit from "@tiptap/starter-kit";
 import Underline from "@tiptap/extension-underline";
 import TextAlign from "@tiptap/extension-text-align";
 import YoutubeExtension from "@tiptap/extension-youtube";
+import ImageExtension from "@tiptap/extension-image";
 
 import {
   AlignCenter,
@@ -21,6 +22,7 @@ import {
   Minus,
   UnderlineIcon,
   Youtube,
+  Image,
 } from "lucide-react";
 import {
   Select,
@@ -29,7 +31,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import {
   Tooltip,
@@ -39,7 +41,15 @@ import {
 } from "@/components/ui/tooltip";
 
 export const Tiptap = () => {
-  const extensions = [StarterKit, Underline, TextAlign, YoutubeExtension];
+  const extensions = [
+    StarterKit,
+    Underline,
+    TextAlign.configure({
+      types: ["heading", "paragraph"],
+    }),
+    YoutubeExtension,
+    ImageExtension,
+  ];
   const content = "<p>Hello World! 🌎️</p>";
 
   return (
@@ -63,7 +73,16 @@ export const ToolBar = () => {
     return null;
   }
 
-  const addYoutubeVideo = () => {
+  const imageInputRef = useRef<HTMLInputElement>(null);
+
+  const fileBlob = (data: File) => {
+    const blob = new Blob([data], {
+      type: data.type,
+    });
+    return blob;
+  };
+
+  const addYoutubeVideo = useCallback(() => {
     const url = prompt("Enter YouTube URL");
 
     if (url) {
@@ -73,7 +92,25 @@ export const ToolBar = () => {
         height: 480,
       });
     }
-  };
+  }, [editor]);
+
+  const addImage = useCallback(
+    (data: FileList | null) => {
+      if (data) {
+        const file = data[0];
+        const url = fileBlob(file);
+        const reader = new FileReader();
+        reader.readAsDataURL(url);
+        reader.onloadend = function render() {
+          const base64data = reader.result as any;
+          if (base64data) {
+            editor.chain().focus().setImage({ src: base64data }).run();
+          }
+        };
+      }
+    },
+    [editor]
+  );
 
   const headingValue = useMemo(() => {
     if (editor.isActive("heading", { level: 1 })) {
@@ -343,6 +380,33 @@ export const ToolBar = () => {
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
+      </div>
+      <div>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => {
+                  imageInputRef.current && imageInputRef.current.click();
+                }}
+              >
+                <Image className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>画像</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+        <input
+          type="file"
+          ref={imageInputRef}
+          onChange={(e) => addImage(e.target.files)}
+          className="hidden"
+          accept="image/*"
+        />
       </div>
     </div>
   );
